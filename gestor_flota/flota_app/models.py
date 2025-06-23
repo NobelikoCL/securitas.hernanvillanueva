@@ -20,7 +20,17 @@ class Personal(models.Model):
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, verbose_name="Usuario") # Puede ser nulo si no es un usuario del sistema
     nombre = models.CharField(max_length=100, verbose_name="Nombre")
     apellido = models.CharField(max_length=100, verbose_name="Apellido")
-    legajo = models.CharField(max_length=20, unique=True, verbose_name="Legajo")
+    rut = models.CharField(max_length=12, unique=True, verbose_name="RUT") # Formato XX.XXX.XXX-X
+    fecha_nacimiento = models.DateField(verbose_name="Fecha de Nacimiento")
+    direccion = models.CharField(max_length=200, verbose_name="Dirección")
+    telefono_contacto = models.CharField(max_length=15, verbose_name="Teléfono de Contacto")
+    acepta_mensajeria_whatsapp = models.BooleanField(default=False, verbose_name="Acepta Mensajería WhatsApp")
+
+    instalacion_trabajo = models.ForeignKey('Instalacion', on_delete=models.SET_NULL, null=True, blank=True, related_name="personal_asignado", verbose_name="Instalación de Trabajo")
+    centro_costo = models.ForeignKey('CentroCosto', on_delete=models.SET_NULL, null=True, blank=True, related_name="personal_asociado", verbose_name="Centro de Costo")
+
+    # Campos existentes
+    legajo = models.CharField(max_length=20, unique=True, verbose_name="Legajo") # Mantener o revisar si RUT será el identificador principal
     fecha_ingreso = models.DateField(verbose_name="Fecha de Ingreso")
     # Los turnos realizados se calcularán dinámicamente o se almacenarán en AsignacionTurno
 
@@ -155,3 +165,14 @@ class GestionTransporte(models.Model):
         verbose_name = "Gestión de Transporte"
         verbose_name_plural = "Gestiones de Transporte"
         ordering = ['-fecha_hora_programada']
+
+class CentroCosto(models.Model):
+    nombre = models.CharField(max_length=100, verbose_name="Nombre del Centro de Costo")
+    codigo = models.CharField(max_length=20, unique=True, verbose_name="Código del Centro de Costo")
+
+    def __str__(self):
+        return f"{self.nombre} ({self.codigo})"
+
+    class Meta:
+        verbose_name = "Centro de Costo"
+        verbose_name_plural = "Centros de Costo"

@@ -1,0 +1,51 @@
+{% extends "pwa_base.html" %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2>{{ titulo_pagina }}</h2>
+        <a href="{% url 'flota_app:personal_create' %}" class="btn btn-primary">Añadir Personal</a>
+    </div>
+
+    {% if personal_list %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover">
+            <thead class="table-dark">
+                <tr>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>RUT</th>
+                    <th>Legajo</th>
+                    <th>Instalación</th>
+                    <th>Centro de Costo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for personal in personal_list %}
+                <tr>
+                    <td>{{ personal.nombre }}</td>
+                    <td>{{ personal.apellido }}</td>
+                    <td>{{ personal.rut }}</td>
+                    <td>{{ personal.legajo }}</td>
+                    <td>{{ personal.instalacion_trabajo.nombre|default:"N/A" }}</td>
+                    <td>{{ personal.centro_costo.nombre|default:"N/A" }}</td>
+                    <td>
+                        <a href="{% url 'flota_app:personal_detail' personal.pk %}" class="btn btn-info btn-sm">Ver</a>
+                        <a href="{% url 'flota_app:personal_update' personal.pk %}" class="btn btn-warning btn-sm">Editar</a>
+                        <a href="{% url 'flota_app:personal_delete' personal.pk %}" class="btn btn-danger btn-sm">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No hay personal registrado actualmente.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

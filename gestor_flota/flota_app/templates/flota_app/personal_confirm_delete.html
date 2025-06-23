@@ -1,0 +1,21 @@
+{% extends "pwa_base.html" %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ titulo_pagina }}</h2>
+    <hr>
+    <div class="alert alert-danger" role="alert">
+        <p>¿Estás seguro de que deseas eliminar a <strong>{{ personal.nombre }} {{ personal.apellido }} ({{ personal.rut }})</strong>?</p>
+        <p>Esta acción no se puede deshacer.</p>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a href="{% url 'flota_app:personal_detail' personal.pk %}" class="btn btn-secondary">Cancelar y Volver al Detalle</a>
+        <a href="{% url 'flota_app:personal_list' %}" class="btn btn-info">Cancelar y Volver al Listado</a>
+    </form>
+</div>
+{% endblock %}

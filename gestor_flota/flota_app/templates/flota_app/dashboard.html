@@ -7,14 +7,46 @@
     <h1 class="h2">{{ titulo_pagina }}</h1>
 </div>
 
-<p>Bienvenido al Dashboard. Aquí se mostrará información estadística del proyecto.</p>
+<p>Bienvenido al Dashboard. Selecciona una opción para comenzar:</p>
 
-{# Aquí se podrán añadir gráficos, tarjetas de resumen, etc. #}
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Gestión de Personal</h5>
+                <p class="card-text">Administrar empleados, ver listados, añadir nuevo personal y realizar cargas masivas.</p>
+                <a href="{% url 'flota_app:personal_list' %}" class="btn btn-primary">Ir a Personal</a>
+                <a href="{% url 'flota_app:personal_bulk_upload' %}" class="btn btn-info mt-2">Carga Masiva de Personal</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Gestión de Vehículos</h5>
+                <p class="card-text">Administrar la flota de vehículos, ver listados y añadir nuevos vehículos.</p>
+                <a href="{% url 'flota_app:vehiculo_list' %}" class="btn btn-primary">Ir a Vehículos</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Otras Gestiones (Próximamente)</h5>
+                <p class="card-text">Futuras funcionalidades como asignaciones, turnos, etc.</p>
+                {# <a href="#" class="btn btn-secondary disabled">Próximamente</a> #}
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-4">
+<p>Aquí se podrán añadir gráficos, tarjetas de resumen, etc., con estadísticas generales del sistema.</p>
 <div class="row">
     <div class="col-md-6 mb-3">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Estadística 1 (Ejemplo)</h5>
+                <h5 class="card-title">Estadística General 1 (Ejemplo)</h5>
                 <p class="card-text">Contenido de la estadística.</p>
             </div>
         </div>
@@ -22,7 +54,7 @@
     <div class="col-md-6 mb-3">
         <div class="card">
             <div class="card-body">
-                <h5 class="card-title">Estadística 2 (Ejemplo)</h5>
+                <h5 class="card-title">Estadística General 2 (Ejemplo)</h5>
                 <p class="card-text">Contenido de la estadística.</p>
             </div>
         </div>

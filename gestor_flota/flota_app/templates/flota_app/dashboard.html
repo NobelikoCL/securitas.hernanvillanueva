@@ -1,0 +1,31 @@
+{% extends "pwa_base.html" %}
+
+{% block title %}Dashboard - Gestor de Flota{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+<p>Bienvenido al Dashboard. Aquí se mostrará información estadística del proyecto.</p>
+
+{# Aquí se podrán añadir gráficos, tarjetas de resumen, etc. #}
+<div class="row">
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Estadística 1 (Ejemplo)</h5>
+                <p class="card-text">Contenido de la estadística.</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Estadística 2 (Ejemplo)</h5>
+                <p class="card-text">Contenido de la estadística.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

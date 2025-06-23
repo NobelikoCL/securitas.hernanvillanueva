@@ -48,3 +48,9 @@ class VehiculoDeleteView(DeleteView):
         return context
 
 # Más vistas se añadirán aquí para otras funcionalidades.
+
+def dashboard_view(request):
+    context = {
+        'titulo_pagina': "Dashboard Principal"
+    }
+    return render(request, 'flota_app/dashboard.html', context)

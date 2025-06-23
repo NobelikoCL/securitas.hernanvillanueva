@@ -22,6 +22,6 @@ from django.views.generic import RedirectView
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("flota/", include("flota_app.urls", namespace="flota_app")), # Incluir las URLs de la app
-    path("", RedirectView.as_view(url="/flota/vehiculos/", permanent=True)), # Redirigir la raíz a la lista de vehículos
+    path("", RedirectView.as_view(pattern_name="flota_app:dashboard", permanent=True)), # Redirigir la raíz al dashboard de la app
     path("", include("pwa.urls")), # Incluir las URLs de PWA. Este path DEBE ir DESPUES del redirect para que el redirect funcione.
 ]

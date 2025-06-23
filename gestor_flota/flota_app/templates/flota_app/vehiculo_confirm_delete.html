@@ -1,0 +1,14 @@
+{% extends "pwa_base.html" %}
+
+{% block title %}{{ titulo_pagina }} - Gestor de Flota{% endblock %}
+
+{% block content %}
+    <h1>{{ titulo_pagina }}</h1>
+    <p>¿Estás seguro de que deseas eliminar el vehículo: <strong>{{ vehiculo }}</strong>?</p>
+
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+        <a href="{% url 'flota_app:vehiculo_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

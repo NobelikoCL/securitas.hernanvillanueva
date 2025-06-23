@@ -1,21 +1,25 @@
 {% extends "pwa_base.html" %}
-{% load i18n %} {# Cargar la librería de internacionalización #}
+{#% load i18n %#} {# Cargar la librería de internacionalización #}
 
-{% block title %}{{ titulo_pagina }} - {% trans "Gestor de Flota" %}{% endblock %}
+{% block title %}{{ titulo_pagina }} - Gestor de Flota{% endblock %}
 
 {% block content %}
-    <h1>{{ titulo_pagina }}</h1>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>{{ titulo_pagina }}</h1>
+        <a href="{% url 'flota_app:vehiculo_create' %}" class="btn btn-primary">Añadir Vehículo</a>
+    </div>
 
     {% if vehiculos %}
         <table class="table table-striped table-bordered">
             <thead class="thead-light">
                 <tr>
-                    <th>{% trans "Patente" %}</th>
-                    <th>{% trans "Marca" %}</th>
-                    <th>{% trans "Modelo" %}</th>
-                    <th>{% trans "Año" %}</th>
-                    <th>{% trans "Kilometraje" %}</th>
-                    <th>{% trans "En Reparación" %}</th>
+                    <th>Patente</th>
+                    <th>Marca</th>
+                    <th>Modelo</th>
+                    <th>Año</th>
+                    <th>Kilometraje</th>
+                    <th>En Reparación</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -26,12 +30,17 @@
                         <td>{{ vehiculo.modelo }}</td>
                         <td>{{ vehiculo.año }}</td>
                         <td>{{ vehiculo.kilometraje }}&nbsp;km</td> {# &nbsp; para espacio no rompible #}
-                        <td>{% if vehiculo.en_reparacion %}{% trans "Sí" %}{% else %}{% trans "No" %}{% endif %}</td>
+                        <td>{% if vehiculo.en_reparacion %}Sí{% else %}No{% endif %}</td>
+                        <td>
+                            <a href="{% url 'flota_app:vehiculo_update' pk=vehiculo.pk %}" class="btn btn-sm btn-info">Editar</a>
+                            <a href="{% url 'flota_app:vehiculo_delete' pk=vehiculo.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>
         </table>
     {% else %}
-        <p class="alert alert-info">{% trans "No hay vehículos registrados." %}</p>
+        <p class="alert alert-info">No hay vehículos registrados.</p>
+        <a href="{% url 'flota_app:vehiculo_create' %}" class="btn btn-primary mt-2">Añadir el primer vehículo</a>
     {% endif %}
 {% endblock %}

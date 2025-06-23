@@ -24,13 +24,12 @@ class Personal(models.Model):
     fecha_ingreso = models.DateField(verbose_name="Fecha de Ingreso")
     # Los turnos realizados se calcularán dinámicamente o se almacenarán en AsignacionTurno
 
-from django.utils import timezone
-from datetime import timedelta
-
     def __str__(self):
         return f"{self.apellido}, {self.nombre} ({self.legajo})"
 
     def turnos_realizados_mes_actual(self, tipo_turno=None):
+        from django.utils import timezone  # Mover imports locales si son específicos de un método
+        from datetime import timedelta     # o mantenerlos globales si se usan en varios métodos.
         """
         Calcula los turnos realizados en el mes actual.
         Si tipo_turno no es None, filtra por ese tipo ('D', 'N', 'E').

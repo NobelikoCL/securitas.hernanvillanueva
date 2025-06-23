@@ -1,0 +1,31 @@
+{% extends "pwa_base.html" %}
+
+{% block title %}{{ titulo_pagina }} - Gestor de Flota{% endblock %}
+
+{% block content %}
+    <h1>{{ titulo_pagina }}</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        {% for field in form %}
+            <div class="form-group">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <small class="form-text text-muted">{{ field.help_text }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                    <div class="invalid-feedback d-block">
+                        {{ error }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <a href="{% url 'flota_app:vehiculo_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endblock %}

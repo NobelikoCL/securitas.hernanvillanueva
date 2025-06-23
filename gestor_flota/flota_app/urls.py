@@ -4,6 +4,7 @@ from . import views
 app_name = 'flota_app'
 
 urlpatterns = [
+    path('dashboard/', views.dashboard_view, name='dashboard'), # Nueva URL para el dashboard
     path('vehiculos/', views.VehiculoListView.as_view(), name='vehiculo_list'),
     path('vehiculos/nuevo/', views.VehiculoCreateView.as_view(), name='vehiculo_create'),
     path('vehiculos/<int:pk>/editar/', views.VehiculoUpdateView.as_view(), name='vehiculo_update'),

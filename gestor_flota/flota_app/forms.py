@@ -1,5 +1,36 @@
 from django import forms
+from django.core.exceptions import ValidationError
+from django.utils.translation import gettext_lazy as _
 from .models import Vehiculo
+import re
+
+def validar_rut(rut):
+    """Valida el formato del RUT chileno."""
+    rut = rut.upper().replace('.', '').replace('-', '')
+    if not re.match(r'^\d{7,8}[0-9K]$', rut):
+        raise ValidationError(_('El RUT ingresado no tiene un formato válido.'))
+    
+    # Validar dígito verificador
+    cuerpo = rut[:-1]
+    dv = rut[-1]
+    
+    suma = 0
+    multiplo = 2
+    
+    # Calcular dígito verificador
+    for i in reversed(cuerpo):
+        suma += int(i) * multiplo
+        multiplo += 1
+        if multiplo > 7:
+            multiplo = 2
+    
+    resto = suma % 11
+    dv_esperado = 11 - resto if resto > 1 else 'K' if resto == 10 else '0'
+    
+    if str(dv_esperado) != dv:
+        raise ValidationError(_('El RUT ingresado no es válido.'))
+    
+    return rut
 
 class VehiculoForm(forms.ModelForm):
     class Meta:
@@ -29,14 +60,28 @@ from .models import Personal, Instalacion, CentroCosto
 class PersonalForm(forms.ModelForm):
     instalacion_trabajo = forms.ModelChoiceField(
         queryset=Instalacion.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-select'}), # Usar form-select para Bootstrap 5
-        required=False # Ajustar según sea necesario
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True,
+        label="Instalación de Trabajo"
     )
     centro_costo = forms.ModelChoiceField(
         queryset=CentroCosto.objects.all(),
-        widget=forms.Select(attrs={'class': 'form-select'}), # Usar form-select para Bootstrap 5
-        required=False # Ajustar según sea necesario
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        required=True,
+        label="Centro de Costo"
     )
+    
+    def clean_rut(self):
+        rut = self.cleaned_data.get('rut', '').strip()
+        return validar_rut(rut)
+    
+    def clean_telefono_contacto(self):
+        telefono = self.cleaned_data.get('telefono_contacto', '').strip()
+        if not telefono.isdigit():
+            raise ValidationError(_('El teléfono debe contener solo números.'))
+        if len(telefono) < 8 or len(telefono) > 15:
+            raise ValidationError(_('El teléfono debe tener entre 8 y 15 dígitos.'))
+        return telefono
 
     class Meta:
         model = Personal

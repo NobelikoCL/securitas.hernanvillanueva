@@ -16,12 +16,14 @@ Including another URLconf
 """
 
 from django.contrib import admin
-from django.urls import path, include # Asegurarse de que include esté importado
+from django.urls import path, include
 from django.views.generic import RedirectView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("flota/", include("flota_app.urls", namespace="flota_app")), # Incluir las URLs de la app
     path("", RedirectView.as_view(pattern_name="flota_app:dashboard", permanent=True)), # Redirigir la raíz al dashboard de la app
     path("", include("pwa.urls")), # Incluir las URLs de PWA. Este path DEBE ir DESPUES del redirect para que el redirect funcione.
-]
+] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

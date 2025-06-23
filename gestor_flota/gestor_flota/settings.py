@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-jo6krl4($n&$+cv$_9-ge1@nv10d$r9q46d^i(#781hc8e00mj"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['securitas-hernanvillanueva.onrender.com']
+ALLOWED_HOSTS = ['securitas-hernanvillanueva.onrender.com', '127.0.0.1', 'localhost', '192.168.0.3']
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "flota_app", # Added flota_app
     "pwa",       # Added PWA app
+    "widget_tweaks",  # Para mejorar los widgets de formularios
 ]
 
 MIDDLEWARE = [
@@ -119,7 +120,15 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_URL = "static/"
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

@@ -10,3 +10,7 @@ python-dotenv==1.0.1
 django-crispy-forms==2.1
 crispy-bootstrap5==2024.2
 django-widget-tweaks==1.5.0
+libjpeg-dev
+zlib1g-dev
+libpng-dev
+libtiff-dev

@@ -1,5 +1,18 @@
+# Herramientas de construcción y empaquetado (al principio)
+setuptools==69.5.1
+wheel==0.43.0
+
+# Dependencias principales de Django
 asgiref==3.8.1
 Django==5.2.3
 django-pwa==2.0.1
 sqlparse==0.5.3
 gunicorn==22.0.0
+whitenoise==6.6.0
+
+# Dependencias para funcionalidades (carga masiva, etc.)
+pandas==2.3.0
+openpyxl==3.1.2
+
+# Pillow - Intentaremos con una versión específica que tenga wheels para Python 3.13
+Pillow==10.3.0

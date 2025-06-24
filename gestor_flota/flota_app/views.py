@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, TemplateView, View
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -7,24 +7,30 @@ import pandas as pd
 from io import BytesIO
 import os
 from django.core.files.base import ContentFile
-from django.http import HttpResponse, FileResponse
+from django.http import HttpResponse, FileResponse, Http404
 from django.conf import settings
 import tempfile
 import openpyxl
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from openpyxl.utils import get_column_letter
 
-from .models import Vehiculo, Personal, Instalacion, Turno, AsignacionVehiculo, AsignacionInstalacion, GestionTransporte, CentroCosto
-from .forms import VehiculoForm, PersonalForm, FileUploadForm
+from .models import Vehiculo, Personal, Instalacion, Turno, AsignacionVehiculo, AsignacionInstalacion, GestionTransporte, CentroCosto, Cliente
+from .forms import VehiculoForm, PersonalForm, FileUploadForm, ClienteForm, CentroCostoForm, InstalacionForm
 
 class VehiculoListView(ListView):
     model = Vehiculo
     template_name = 'flota_app/vehiculo_list.html'
     context_object_name = 'vehiculos'
 
+    def get_queryset(self):
+        # Optimizar para obtener información relacionada
+        return Vehiculo.objects.all().select_related('instalacion_base__centro_costo__cliente')
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['titulo_pagina'] = "Listado de Vehículos"
+        # Se podría añadir un selector de cliente para filtrar la lista de vehículos si fuera necesario
+        # context['clientes'] = Cliente.objects.all()
         return context
 
 class VehiculoCreateView(CreateView):
@@ -401,3 +407,348 @@ class PersonalBulkUploadView(View):
         # Si el formulario no es válido, mostrar errores
         messages.error(request, "Por favor, corrija los errores en el formulario.")
         return redirect('flota_app:personal_bulk_upload')
+
+# Vistas para Cliente, Centro de Costo e Instalaciones
+
+# Vistas CRUD para Cliente
+class ClienteListView(ListView):
+    model = Cliente
+    template_name = 'flota_app/cliente_list.html' # Nueva plantilla para listar clientes
+    context_object_name = 'clientes'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Gestión de Clientes"
+        return context
+
+class ClienteCreateView(CreateView):
+    model = Cliente
+    form_class = ClienteForm
+    template_name = 'flota_app/cliente_form.html' # Reutilizar o adaptar la existente
+    success_url = reverse_lazy('flota_app:cliente_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Cliente '{form.instance.nombre}' creado correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = "Registrar Nuevo Cliente"
+        context['es_creacion'] = True
+        return context
+
+class ClienteUpdateView(UpdateView):
+    model = Cliente
+    form_class = ClienteForm
+    template_name = 'flota_app/cliente_form.html' # Reutilizar o adaptar la existente
+    success_url = reverse_lazy('flota_app:cliente_list')
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Cliente '{form.instance.nombre}' actualizado correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Editar Cliente: {self.object.nombre}"
+        context['es_creacion'] = False
+        return context
+
+class ClienteDeleteView(DeleteView):
+    model = Cliente
+    template_name = 'flota_app/cliente_confirm_delete.html' # Nueva plantilla
+    success_url = reverse_lazy('flota_app:cliente_list')
+    context_object_name = 'cliente'
+
+    def form_valid(self, form):
+        # Verificar si hay Centros de Costo asociados antes de eliminar
+        if self.object.centros_costo.exists():
+            messages.error(self.request, f"No se puede eliminar el cliente '{self.object.nombre}' porque tiene Centros de Costo asociados. Por favor, elimínelos o reasígnelos primero.")
+            # Redirigir a la lista de clientes o a la vista de detalle del cliente
+            return redirect('flota_app:cliente_list') # O self.object.get_absolute_url() si está definido
+
+        messages.success(self.request, f"Cliente '{self.object.nombre}' eliminado correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Confirmar Eliminación de Cliente: {self.object.nombre}"
+        return context
+
+# Vistas para CentroCosto
+class CentroCostoListView(ListView):
+    model = CentroCosto
+    template_name = 'flota_app/centros_costo/centrocosto_list.html'
+    context_object_name = 'centros_costo'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cliente = get_object_or_404(Cliente, pk=self.kwargs.get('cliente_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        # Filtrar por el cliente obtenido en dispatch
+        return CentroCosto.objects.filter(cliente=self.cliente)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Centros de Costo de: {self.cliente.nombre}"
+        context['cliente'] = self.cliente
+        return context
+
+class CentroCostoCreateView(CreateView):
+    model = CentroCosto
+    form_class = CentroCostoForm
+    template_name = 'flota_app/centros_costo/centrocosto_form.html'
+    # success_url se definirá en get_success_url
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cliente = get_object_or_404(Cliente, pk=self.kwargs.get('cliente_id'))
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['cliente_obj'] = self.cliente # Pasar el cliente al formulario
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.cliente = self.cliente # Asignar el cliente a la instancia del CC
+        messages.success(self.request, f"Centro de Costo '{form.instance.nombre}' creado para {self.cliente.nombre}.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Añadir Centro de Costo para: {self.cliente.nombre}"
+        context['cliente'] = self.cliente
+        context['es_creacion'] = True
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('flota_app:centrocosto_list_by_cliente', kwargs={'cliente_id': self.cliente.pk})
+
+class CentroCostoUpdateView(UpdateView):
+    model = CentroCosto
+    form_class = CentroCostoForm
+    template_name = 'flota_app/centros_costo/centrocosto_form.html'
+    # success_url se definirá en get_success_url
+
+    def get_object(self, queryset=None):
+        # Asegurarse que el CC que se edita pertenece al cliente en contexto (si se proporciona)
+        # o simplemente obtener el objeto por su pk si no hay contexto de cliente en la URL.
+        # Por ahora, la URL no tiene cliente_id para update, así que solo usamos pk.
+        # La lógica del form ya deshabilita el cambio de cliente.
+        return super().get_object(queryset)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Pasar el cliente de la instancia actual al formulario para que lo deshabilite
+        if self.object and self.object.cliente:
+            kwargs['cliente_obj'] = self.object.cliente
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Centro de Costo '{form.instance.nombre}' actualizado.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Editar Centro de Costo: {self.object.nombre}"
+        # El cliente se obtiene del objeto mismo (self.object.cliente)
+        context['cliente'] = self.object.cliente
+        context['es_creacion'] = False
+        return context
+
+    def get_success_url(self):
+        # Redirigir a la lista de CCs del cliente al que pertenece el CC editado
+        return reverse_lazy('flota_app:centrocosto_list_by_cliente', kwargs={'cliente_id': self.object.cliente.pk})
+
+class CentroCostoDeleteView(DeleteView):
+    model = CentroCosto
+    template_name = 'flota_app/centros_costo/centrocosto_confirm_delete.html'
+    context_object_name = 'centrocosto'
+    # success_url se definirá en get_success_url
+
+    def get_object(self, queryset=None):
+        # Similar a UpdateView, por ahora solo usa pk.
+        # Se podría añadir verificación de pertenencia a un cliente si la URL de borrado se anida.
+        return super().get_object(queryset)
+
+    def form_valid(self, form):
+        cliente_pk = self.object.cliente.pk # Guardar pk antes de borrar
+        # Verificar si hay Instalaciones asociadas
+        if self.object.instalaciones.exists():
+            messages.error(self.request, f"No se puede eliminar el Centro de Costo '{self.object.nombre}' porque tiene Instalaciones asociadas. Por favor, elimínelas o reasígnelas primero.")
+            return redirect('flota_app:centrocosto_list_by_cliente', cliente_id=cliente_pk)
+
+        messages.success(self.request, f"Centro de Costo '{self.object.nombre}' eliminado correctamente.")
+        # No llamar a super().form_valid(form) aquí, sino realizar la eliminación después de la verificación
+        self.object.delete()
+        return redirect(self.get_success_url(cliente_pk=cliente_pk))
+
+    def post(self, request, *args, **kwargs):
+        # Sobrescribir post para manejar la redirección con success_url que depende del objeto
+        self.object = self.get_object()
+        # La lógica de form_valid ahora maneja la eliminación y redirección
+        # Simplemente llamamos a form_valid (aunque no hay form real aquí)
+        # Esto es un poco atípico para DeleteView, se podría hacer directamente
+        if self.object.instalaciones.exists():
+            messages.error(self.request, f"No se puede eliminar el Centro de Costo '{self.object.nombre}' porque tiene Instalaciones asociadas.")
+            return redirect('flota_app:centrocosto_list_by_cliente', cliente_id=self.object.cliente.pk)
+
+        nombre_cc_eliminado = self.object.nombre
+        cliente_pk_redirect = self.object.cliente.pk
+        self.object.delete()
+        messages.success(self.request, f"Centro de Costo '{nombre_cc_eliminado}' eliminado correctamente.")
+        return redirect(self.get_success_url(cliente_pk=cliente_pk_redirect))
+
+    def get_success_url(self, cliente_pk=None):
+        # Redirigir a la lista de CCs del cliente al que pertenecía el CC eliminado
+        if cliente_pk:
+             return reverse_lazy('flota_app:centrocosto_list_by_cliente', kwargs={'cliente_id': cliente_pk})
+        # Fallback, aunque siempre debería haber un cliente_pk si el objeto existe
+        return reverse_lazy('flota_app:cliente_list')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Confirmar Eliminación de CC: {self.object.nombre}"
+        context['cliente'] = self.object.cliente # Para la plantilla
+        return context
+
+# Vistas para Instalacion
+class InstalacionListView(ListView):
+    model = Instalacion
+    template_name = 'flota_app/instalaciones/instalacion_list.html'
+    context_object_name = 'instalaciones'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cliente = get_object_or_404(Cliente, pk=self.kwargs.get('cliente_id'))
+        # Centro de costo es opcional en la URL para la lista, puede venir como kwarg o GET param
+        self.centro_costo = None
+        centro_costo_id_kwarg = self.kwargs.get('centro_costo_id')
+        centro_costo_id_get = self.request.GET.get('centro_costo_id_filter') # Desde el filtro del formulario
+
+        if centro_costo_id_kwarg:
+            self.centro_costo = get_object_or_404(CentroCosto, pk=centro_costo_id_kwarg, cliente=self.cliente)
+        elif centro_costo_id_get:
+             try:
+                self.centro_costo = CentroCosto.objects.get(pk=centro_costo_id_get, cliente=self.cliente)
+             except CentroCosto.DoesNotExist:
+                # No hacer un 404 si el filtro GET es inválido, simplemente no filtrar por CC.
+                pass
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_queryset(self):
+        queryset = Instalacion.objects.filter(centro_costo__cliente=self.cliente)
+        if self.centro_costo:
+            queryset = queryset.filter(centro_costo=self.centro_costo)
+        return queryset.select_related('centro_costo')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        titulo = f"Instalaciones de: {self.cliente.nombre}"
+        if self.centro_costo:
+            titulo += f" (CC: {self.centro_costo.nombre})"
+        context['titulo_pagina'] = titulo
+        context['cliente'] = self.cliente
+        context['centro_costo_filtrado'] = self.centro_costo # Para el filtro y otros elementos de la plantilla
+        context['centros_costo_disponibles'] = CentroCosto.objects.filter(cliente=self.cliente)
+        return context
+
+class InstalacionCreateView(CreateView):
+    model = Instalacion
+    form_class = InstalacionForm
+    template_name = 'flota_app/instalaciones/instalacion_form.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        self.cliente = get_object_or_404(Cliente, pk=self.kwargs.get('cliente_id'))
+        self.centro_costo = get_object_or_404(CentroCosto, pk=self.kwargs.get('centro_costo_id'), cliente=self.cliente)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['cliente_obj'] = self.cliente # Para que InstalacionForm filtre los CCs a este cliente
+        # No es necesario pasar centro_costo_obj al form, ya que se asigna en form_valid.
+        # Pero sí es útil para preseleccionar el CC en el form si es relevante.
+        return kwargs
+
+    def form_valid(self, form):
+        form.instance.centro_costo = self.centro_costo # Asignar el CC del contexto de la URL
+        messages.success(self.request, f"Instalación '{form.instance.nombre}' creada para CC '{self.centro_costo.nombre}'.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Añadir Instalación a CC '{self.centro_costo.nombre}' (Cliente: {self.cliente.nombre})"
+        context['cliente'] = self.cliente
+        context['centro_costo_actual'] = self.centro_costo # Para la plantilla
+        context['es_creacion'] = True
+
+        # Preseleccionar el centro_costo en el formulario
+        form = context.get('form', self.form_class(**self.get_form_kwargs())) # Obtener form con kwargs correctos
+        form.fields['centro_costo'].initial = self.centro_costo
+        # Opcionalmente deshabilitar si solo se puede crear para este CC
+        # form.fields['centro_costo'].widget.attrs['disabled'] = True
+        context['form'] = form
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('flota_app:instalacion_list_by_cc', kwargs={
+            'cliente_id': self.cliente.pk,
+            'centro_costo_id': self.centro_costo.pk
+        })
+
+class InstalacionUpdateView(UpdateView):
+    model = Instalacion
+    form_class = InstalacionForm
+    template_name = 'flota_app/instalaciones/instalacion_form.html'
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        # Pasar el cliente del CC de la instancia actual al formulario
+        if self.object and self.object.centro_costo:
+            kwargs['cliente_obj'] = self.object.centro_costo.cliente
+        return kwargs
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Instalación '{form.instance.nombre}' actualizada.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Editar Instalación: {self.object.nombre}"
+        context['cliente'] = self.object.centro_costo.cliente # Para la plantilla
+        context['centro_costo_actual'] = self.object.centro_costo # Para la plantilla
+        context['es_creacion'] = False
+        return context
+
+    def get_success_url(self):
+        # Redirigir a la lista de instalaciones del CC al que pertenece la instalación
+        return reverse_lazy('flota_app:instalacion_list_by_cc', kwargs={
+            'cliente_id': self.object.centro_costo.cliente.pk,
+            'centro_costo_id': self.object.centro_costo.pk
+        })
+
+class InstalacionDeleteView(DeleteView):
+    model = Instalacion
+    template_name = 'flota_app/instalaciones/instalacion_confirm_delete.html'
+    context_object_name = 'instalacion'
+
+    def get_success_url(self):
+        # Redirigir a la lista de instalaciones del CC al que pertenecía la instalación
+        if self.object and self.object.centro_costo:
+             return reverse_lazy('flota_app:instalacion_list_by_cc', kwargs={
+                'cliente_id': self.object.centro_costo.cliente.pk,
+                'centro_costo_id': self.object.centro_costo.pk
+            })
+        # Fallback (aunque no debería ocurrir si el objeto existe)
+        return reverse_lazy('flota_app:cliente_list')
+
+
+    def form_valid(self, form):
+        messages.success(self.request, f"Instalación '{self.object.nombre}' eliminada correctamente.")
+        return super().form_valid(form)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['titulo_pagina'] = f"Confirmar Eliminación de Instalación: {self.object.nombre}"
+        context['cliente'] = self.object.centro_costo.cliente # Para la plantilla
+        context['centro_costo_actual'] = self.object.centro_costo # Para la plantilla
+        return context

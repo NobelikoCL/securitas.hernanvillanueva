@@ -1,0 +1,49 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+{# El cliente debe existir para llegar aquí si la URL requiere cliente_id #}
+{# La vista CreateView pasará el cliente, y UpdateView lo obtendrá del objeto #}
+
+{% if form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        Por favor, corrija los errores en el formulario.
+    </div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+
+    {# El campo cliente en el formulario es manejado por el __init__ del form
+       para ser deshabilitado y pre-rellenado si cliente_obj se pasa.
+       Si no se pasa (ej. un admin global), sería un select normal.
+       Aquí, asumimos que 'cliente' (pasado desde la vista) está en el contexto. #}
+
+    {% if form.cliente.is_hidden or form.cliente.field.widget.attrs.disabled or form.cliente.field.widget.attrs.readonly %}
+      <div class="mb-3">
+        <label class="form-label">Cliente</label>
+        <input type="text" class="form-control" value="{{ cliente.nombre }}" disabled>
+        {{ form.cliente.as_hidden }} {# Asegura que el valor se envíe si es necesario y está deshabilitado #}
+      </div>
+    {% else %}
+      {{ form.cliente|as_crispy_field }}
+    {% endif %}
+
+    {{ form.nombre|as_crispy_field }}
+    {{ form.codigo|as_crispy_field }}
+
+    <div class="mt-3">
+        <button type="submit" class="btn btn-success">
+            {% if es_creacion %}Añadir Centro de Costo{% else %}Guardar Cambios{% endif %}
+        </button>
+        <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}" class="btn btn-secondary">Cancelar</a>
+    </div>
+</form>
+
+{% endblock %}

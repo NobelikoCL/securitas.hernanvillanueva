@@ -1,0 +1,68 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+    {% if cliente %} {# cliente ahora viene de la vista y es el cliente en contexto #}
+        <div class="btn-toolbar mb-2 mb-md-0">
+            <a href="{% url 'flota_app:centrocosto_create_for_cliente' cliente.pk %}" class="btn btn-sm btn-outline-primary">
+                Añadir Nuevo Centro de Costo
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if not cliente %}
+    {# Este bloque no debería alcanzarse si la vista requiere cliente_id en la URL y hace un 404 si no se encuentra #}
+    <div class="alert alert-warning" role="alert">
+        Se requiere un cliente para ver sus centros de costo. <a href="{% url 'flota_app:cliente_list' %}">Volver a la lista de clientes</a>.
+    </div>
+{% else %}
+    {# <p>Cliente: <strong>{{ cliente.nombre }}</strong></p> #} {# El título ya lo indica #}
+
+    {% if centros_costo %}
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Código</th>
+                    <th>Instalaciones</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cc in centros_costo %}
+                <tr>
+                    <td>{{ cc.nombre }}</td>
+                    <td>{{ cc.codigo }}</td>
+                    <td>
+                        <a href="{% url 'flota_app:instalacion_list_by_cc' cliente_id=cliente.pk centro_costo_id=cc.pk %}" class="btn btn-sm btn-outline-info">
+                            Ver ({{ cc.instalaciones.count }})
+                        </a>
+                    </td>
+                    <td>
+                        <a href="{% url 'flota_app:centrocosto_update' cc.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'flota_app:centrocosto_delete' cc.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        No hay centros de costo registrados para este cliente.
+        <a href="{% url 'flota_app:centrocosto_create_for_cliente' cliente.pk %}">Puedes añadir uno nuevo</a>.
+    </div>
+    {% endif %}
+    <hr>
+    <a href="{% url 'flota_app:cliente_list' %}" class="btn btn-secondary">Volver a Lista de Clientes</a>
+    <a href="{% url 'flota_app:instalacion_list_by_cliente' cliente_id=cliente.pk %}" class="btn btn-info">Ver Todas las Instalaciones de {{ cliente.nombre }}</a>
+
+{% endif %}
+
+{% endblock %}

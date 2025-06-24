@@ -19,6 +19,9 @@
                     <th>Año</th>
                     <th>Kilometraje</th>
                     <th>En Reparación</th>
+                    <th>Instalación Base</th>
+                    <th>Centro de Costo</th>
+                    <th>Cliente</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -31,6 +34,27 @@
                         <td>{{ vehiculo.año }}</td>
                         <td>{{ vehiculo.kilometraje }}&nbsp;km</td> {# &nbsp; para espacio no rompible #}
                         <td>{% if vehiculo.en_reparacion %}Sí{% else %}No{% endif %}</td>
+                        <td>
+                            {% if vehiculo.instalacion_base %}
+                                {{ vehiculo.instalacion_base.nombre }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if vehiculo.instalacion_base and vehiculo.instalacion_base.centro_costo %}
+                                {{ vehiculo.instalacion_base.centro_costo.nombre }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if vehiculo.instalacion_base and vehiculo.instalacion_base.centro_costo and vehiculo.instalacion_base.centro_costo.cliente %}
+                                {{ vehiculo.instalacion_base.centro_costo.cliente.nombre }}
+                            {% else %}
+                                <span class="text-muted">N/A</span>
+                            {% endif %}
+                        </td>
                         <td>
                             <a href="{% url 'flota_app:vehiculo_update' pk=vehiculo.pk %}" class="btn btn-sm btn-info">Editar</a>
                             <a href="{% url 'flota_app:vehiculo_delete' pk=vehiculo.pk %}" class="btn btn-sm btn-danger">Eliminar</a>

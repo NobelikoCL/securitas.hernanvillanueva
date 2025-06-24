@@ -1,0 +1,37 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+<p>Cliente: <strong>{{ cliente.nombre }}</strong></p>
+<p>¿Estás seguro de que quieres eliminar el centro de costo "<strong>{{ centrocosto.nombre }} ({{ centrocosto.codigo }})</strong>"?</p>
+
+{% if centrocosto.instalaciones.exists %} {# Usar .exists para eficiencia #}
+<div class="alert alert-danger" role="alert">
+    <strong>¡Advertencia Importante!</strong> Este centro de costo tiene <strong>{{ centrocosto.instalaciones.count }}</strong> instalación(es) asociada(s):
+    <ul>
+    {% for instalacion in centrocosto.instalaciones.all %}
+        <li>{{ instalacion.nombre }}</li>
+    {% endfor %}
+    </ul>
+    <p><strong>La vista actualmente previene la eliminación si existen instalaciones asociadas. Deberá eliminarlas o reasignarlas primero.</strong></p>
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {% if not centrocosto.instalaciones.exists %}
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    {% else %}
+        <button type="submit" class="btn btn-danger" disabled>Eliminar (Bloqueado)</button>
+        <small class="form-text text-muted">Elimine o reasigne las instalaciones primero.</small>
+    {% endif %}
+    <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}" class="btn btn-secondary">Cancelar</a>
+</form>
+
+{% endblock %}

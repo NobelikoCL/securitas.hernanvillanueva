@@ -1,0 +1,41 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+<p>¿Estás seguro de que quieres eliminar al cliente "<strong>{{ cliente.nombre }} ({{ cliente.rut }})</strong>"?</p>
+
+{% if cliente.centros_costo.exists %}
+<div class="alert alert-danger" role="alert">
+    <strong>¡Advertencia Importante!</strong> Este cliente tiene <strong>{{ cliente.centros_costo.count }}</strong> centro(s) de costo asociado(s):
+    <ul>
+        {% for cc in cliente.centros_costo.all %}
+        <li>{{ cc.nombre }} ({{ cc.codigo }}) - con {{ cc.instalaciones.count }} instalación(es)</li>
+        {% endfor %}
+    </ul>
+    <p>Eliminar este cliente también eliminará todos sus centros de costo y todas las instalaciones asociadas a esos centros de costo. Esta acción no se puede deshacer.</p>
+    <p><strong>La vista actualmente previene la eliminación si existen centros de costo asociados. Deberá eliminarlos o reasignarlos primero.</strong></p>
+</div>
+{% else %}
+<div class="alert alert-warning" role="alert">
+    Esta acción eliminará permanentemente al cliente. ¿Estás seguro?
+</div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {% if not cliente.centros_costo.exists %}
+        <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    {% else %}
+        <button type="submit" class="btn btn-danger" disabled>Eliminar (Bloqueado)</button>
+        <small class="form-text text-muted">Elimine o reasigne los centros de costo primero.</small>
+    {% endif %}
+    <a href="{% url 'flota_app:cliente_list' %}" class="btn btn-secondary">Cancelar</a>
+</form>
+
+{% endblock %}

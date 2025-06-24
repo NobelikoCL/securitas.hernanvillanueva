@@ -40,7 +40,11 @@ INSTALLED_APPS = [
     "flota_app", # Added flota_app
     "pwa",       # Added PWA app
     "widget_tweaks",  # Para mejorar los widgets de formularios
+    "crispy_forms",   # Para renderizar formularios con Bootstrap
 ]
+
+CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
+CRISPY_TEMPLATE_PACK = "bootstrap5"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

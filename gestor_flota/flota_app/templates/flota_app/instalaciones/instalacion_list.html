@@ -1,0 +1,110 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        {{ titulo_pagina }}
+        {# El título ya es dinámico por la vista: "Instalaciones de: [Cliente]" o "Instalaciones de: [Cliente] (CC: [CC])" #}
+    </h1>
+    {% if cliente and centros_costo_disponibles.exists %}
+        <div class="btn-toolbar mb-2 mb-md-0">
+            {# El botón de añadir nueva instalación debe llevar al contexto del CC si está filtrado, o permitir seleccionar si no #}
+            {% if centro_costo_filtrado %}
+            <a href="{% url 'flota_app:instalacion_create_for_cc' cliente_id=cliente.pk centro_costo_id=centro_costo_filtrado.pk %}" class="btn btn-sm btn-outline-primary">
+                Añadir Instalación a {{ centro_costo_filtrado.nombre }}
+            </a>
+            {% elif centros_costo_disponibles.count == 1 %}
+             <a href="{% url 'flota_app:instalacion_create_for_cc' cliente_id=cliente.pk centro_costo_id=centros_costo_disponibles.first.pk %}" class="btn btn-sm btn-outline-primary">
+                Añadir Nueva Instalación (a {{ centros_costo_disponibles.first.nombre }})
+            </a>
+            {% else %}
+            {# Si hay múltiples CCs y no se está filtrando, ¿a dónde lleva "Añadir Nueva"?
+               Podría llevar a una página intermedia para seleccionar CC, o el form de creación de instalación permitiría elegir.
+               Por ahora, asumimos que el form de creación sin cc_id en URL permitirá elegir.
+               O mejor, no mostramos el botón general si no hay un CC filtrado y hay muchos.
+               La URL 'instalacion_create' ya no existe, se usa 'instalacion_create_for_cc'.
+               Entonces, este botón solo tiene sentido si hay un CC filtrado o solo un CC para el cliente.
+            #}
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+{% if not cliente %}
+    {# No debería llegar aquí si la URL requiere cliente_id #}
+    <div class="alert alert-warning" role="alert">
+        Se requiere un cliente para ver sus instalaciones. <a href="{% url 'flota_app:cliente_list' %}">Volver a la lista de clientes</a>.
+    </div>
+{% elif not centros_costo_disponibles.exists %}
+<div class="alert alert-warning" role="alert">
+    Debe <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}">registrar al menos un Centro de Costo</a> para el cliente {{ cliente.nombre }} antes de poder añadir instalaciones.
+</div>
+{% else %}
+    <div class="row mb-3">
+        <div class="col-md-6">
+            <form method="get">
+                <label for="centro_costo_id_filter" class="form-label">Filtrar por Centro de Costo:</label>
+                <div class="input-group">
+                    <select name="centro_costo_id" id="centro_costo_id_filter" class="form-select">
+                        <option value="">Todos los Centros de Costo</option>
+                        {% for cc_opt in centros_costo_disponibles %}
+                        <option value="{{ cc_opt.id }}" {% if centro_costo_filtrado and centro_costo_filtrado.id == cc_opt.id %}selected{% endif %}>
+                            {{ cc_opt.nombre }} ({{ cc_opt.codigo }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <button class="btn btn-outline-secondary" type="submit">Filtrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {% if instalaciones %}
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Dirección</th>
+                    <th>Centro de Costo</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for inst in instalaciones %}
+                <tr>
+                    <td>{{ inst.nombre }}</td>
+                    <td>{{ inst.direccion }}</td>
+                    <td>{{ inst.centro_costo.nombre }} ({{ inst.centro_costo.codigo }})</td>
+                    <td>
+                        <a href="{% url 'flota_app:instalacion_update' inst.pk %}" class="btn btn-sm btn-warning">Editar</a>
+                        <a href="{% url 'flota_app:instalacion_delete' inst.pk %}" class="btn btn-sm btn-danger">Eliminar</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info mt-3" role="alert">
+        No hay instalaciones registradas que coincidan con el filtro actual.
+        {% if cliente and centros_costo_disponibles.exists %}
+            {% if centro_costo_filtrado %}
+            <a href="{% url 'flota_app:instalacion_create_for_cc' cliente_id=cliente.pk centro_costo_id=centro_costo_filtrado.pk %}">Puedes añadir una nueva a {{ centro_costo_filtrado.nombre }}</a>.
+            {% elif centros_costo_disponibles.count == 1 %}
+            <a href="{% url 'flota_app:instalacion_create_for_cc' cliente_id=cliente.pk centro_costo_id=centros_costo_disponibles.first.pk %}">Puedes añadir una nueva a {{ centros_costo_disponibles.first.nombre }}</a>.
+            {% else %}
+            Puedes añadir una nueva seleccionando primero un Centro de Costo en el filtro de arriba, o desde la <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}">lista de Centros de Costo</a>.
+            {% endif %}
+        {% endif %}
+    </div>
+    {% endif %}
+    <hr>
+    <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}" class="btn btn-secondary">Volver a Centros de Costo de {{ cliente.nombre }}</a>
+
+{% endif %}
+
+{% endblock %}

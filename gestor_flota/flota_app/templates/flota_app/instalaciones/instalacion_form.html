@@ -1,0 +1,58 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+{% if not puede_crear and es_creacion %}
+    {% comment %} Los mensajes de advertencia ya se muestran desde la vista {% endcomment %}
+    {% if not cliente %}
+    <div class="alert alert-danger" role="alert">
+        No se puede crear una Instalación porque no hay un Cliente registrado.
+        Por favor, <a href="{% url 'flota_app:cliente_manage' %}" class="alert-link">configure el Cliente primero</a>.
+    </div>
+    {% elif not form.fields.centro_costo.queryset.exists %}
+     <div class="alert alert-danger" role="alert">
+        No se puede crear una Instalación porque no hay Centros de Costo registrados para el cliente.
+        Por favor, <a href="{% url 'flota_app:centrocosto_list' %}" class="alert-link">añada un Centro de Costo primero</a>.
+    </div>
+    {% endif %}
+{% elif form.errors and not form.non_field_errors %}
+    <div class="alert alert-danger" role="alert">
+        Por favor, corrija los errores en el formulario.
+    </div>
+{% endif %}
+
+
+{% if (puede_crear and es_creacion) or not es_creacion %} {# Mostrar formulario si se puede crear o si es una actualización #}
+<form method="post">
+    {% csrf_token %}
+    {{ form|crispy }}
+    <div class="mt-3">
+        <button type="submit" class="btn btn-success">
+            {% if es_creacion %}Añadir Instalación{% else %}Guardar Cambios{% endif %}
+        </button>
+        {# El objeto 'cliente' y 'centro_costo_actual' son pasados por la vista #}
+        {% if es_creacion %}
+            {# Para creación, el centro_costo_actual es el CC al que se añade #}
+            <a href="{% url 'flota_app:instalacion_list_by_cc' cliente_id=cliente.pk centro_costo_id=centro_costo_actual.pk %}" class="btn btn-secondary">Cancelar</a>
+        {% else %}
+            {# Para edición, object.centro_costo es el CC de la instalación #}
+            <a href="{% url 'flota_app:instalacion_list_by_cc' cliente_id=object.centro_costo.cliente.pk centro_costo_id=object.centro_costo.pk %}" class="btn btn-secondary">Cancelar</a>
+        {% endif %}
+    </div>
+</form>
+{% else %}
+    {# Si no se puede crear y no es edición, redirigir a la lista de CCs del cliente si existe, o a la lista de clientes #}
+    {% if cliente %}
+        <a href="{% url 'flota_app:centrocosto_list_by_cliente' cliente.pk %}" class="btn btn-primary">Volver a Centros de Costo</a>
+    {% else %}
+        <a href="{% url 'flota_app:cliente_list' %}" class="btn btn-primary">Volver a Lista de Clientes</a>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

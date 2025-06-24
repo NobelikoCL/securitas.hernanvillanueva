@@ -1,0 +1,21 @@
+{% extends "pwa_base.html" %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ titulo_pagina }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">{{ titulo_pagina }}</h1>
+</div>
+
+<p>Cliente: <strong>{{ cliente.nombre }}</strong></p>
+<p>Centro de Costo: <strong>{{ centro_costo_actual.nombre }}</strong></p>
+<p>¿Estás seguro de que quieres eliminar la instalación "<strong>{{ instalacion.nombre }}</strong>"?</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Sí, eliminar</button>
+    <a href="{% url 'flota_app:instalacion_list_by_cc' cliente_id=cliente.pk centro_costo_id=centro_costo_actual.pk %}" class="btn btn-secondary">Cancelar</a>
+</form>
+
+{% endblock %}

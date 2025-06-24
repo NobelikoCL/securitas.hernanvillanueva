@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 
 class Vehiculo(models.Model):
     patente = models.CharField(max_length=10, unique=True, verbose_name="Patente")
@@ -8,6 +9,7 @@ class Vehiculo(models.Model):
     año = models.IntegerField(verbose_name="Año")
     kilometraje = models.IntegerField(verbose_name="Kilometraje")
     en_reparacion = models.BooleanField(default=False, verbose_name="En Reparación")
+    instalacion_base = models.ForeignKey('Instalacion', on_delete=models.SET_NULL, null=True, blank=True, related_name="vehiculos_asociados", verbose_name="Instalación Base")
 
     def __str__(self):
         return f"{self.marca} {self.modelo} ({self.patente})"
@@ -77,16 +79,20 @@ class Personal(models.Model):
         verbose_name_plural = "Personal"
 
 class Instalacion(models.Model):
-    nombre = models.CharField(max_length=100, unique=True, verbose_name="Nombre de la Instalación")
+    nombre = models.CharField(max_length=100, verbose_name="Nombre de la Instalación") # Ya no es unique globalmente
     direccion = models.CharField(max_length=200, verbose_name="Dirección")
     descripcion = models.TextField(blank=True, null=True, verbose_name="Descripción")
+    latitud = models.FloatField(null=True, blank=True, verbose_name="Latitud")
+    longitud = models.FloatField(null=True, blank=True, verbose_name="Longitud")
+    centro_costo = models.ForeignKey('CentroCosto', on_delete=models.CASCADE, related_name="instalaciones", verbose_name="Centro de Costo") # De vuelta a non-nullable
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} ({self.centro_costo.nombre if self.centro_costo else 'Sin CC'})"
 
     class Meta:
         verbose_name = "Instalación"
         verbose_name_plural = "Instalaciones"
+        unique_together = ('nombre', 'centro_costo') # Nombre de instalación debe ser único por CC
 
 class Turno(models.Model):
     TIPO_TURNO_CHOICES = [
@@ -168,11 +174,32 @@ class GestionTransporte(models.Model):
 
 class CentroCosto(models.Model):
     nombre = models.CharField(max_length=100, verbose_name="Nombre del Centro de Costo")
-    codigo = models.CharField(max_length=20, unique=True, verbose_name="Código del Centro de Costo")
+    codigo = models.CharField(max_length=20, verbose_name="Código del Centro de Costo") # Eliminado unique=True
+    cliente = models.ForeignKey('Cliente', on_delete=models.CASCADE, related_name="centros_costo", verbose_name="Cliente") # De vuelta a non-nullable
 
     def __str__(self):
-        return f"{self.nombre} ({self.codigo})"
+        return f"{self.nombre} ({self.codigo}) - {self.cliente.nombre if self.cliente else 'Sin Cliente Asignado'}"
 
     class Meta:
         verbose_name = "Centro de Costo"
         verbose_name_plural = "Centros de Costo"
+        unique_together = ('codigo', 'cliente') # Código de CC debe ser único por cliente
+
+# Modelo Cliente (Solo puede haber uno)
+class Cliente(models.Model):
+    nombre = models.CharField(max_length=150, unique=True, verbose_name="Nombre del Cliente")
+    rut = models.CharField(max_length=12, unique=True, verbose_name="RUT del Cliente")
+    direccion = models.CharField(max_length=200, verbose_name="Dirección")
+    telefono = models.CharField(max_length=15, blank=True, verbose_name="Teléfono")
+    email = models.EmailField(blank=True, verbose_name="Email")
+
+    def __str__(self):
+        return self.nombre
+
+    # El método save() personalizado para restringir a un solo cliente ya no es necesario.
+    # Se elimina para permitir múltiples clientes. unique=True en nombre y rut se encargarán
+    # de la unicidad a nivel de esos campos.
+
+    class Meta:
+        verbose_name = "Cliente"
+        verbose_name_plural = "Clientes"

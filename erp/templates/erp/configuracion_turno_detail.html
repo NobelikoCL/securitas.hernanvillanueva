@@ -1,0 +1,79 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Detalles de Configuración de Turnos - ERP CORE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Detalles de Configuración de Turnos</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Instalación</label>
+                        <p class="form-control-plaintext">{{ configuracion.instalacion.nombre }}</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Turno</label>
+                        <p class="form-control-plaintext">{{ configuracion.get_tipo_turno_display }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Hora de Inicio</label>
+                        <p class="form-control-plaintext">{{ configuracion.hora_inicio|time:"H:i" }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Hora de Fin</label>
+                        <p class="form-control-plaintext">{{ configuracion.hora_fin|time:"H:i" }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Días de Trabajo por Mes</label>
+                        <p class="form-control-plaintext">{{ configuracion.dias_trabajo }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Días Libres por Mes</label>
+                        <p class="form-control-plaintext">{{ configuracion.dias_libres }}</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <p class="form-control-plaintext">
+                            <span class="badge {% if configuracion.activo %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if configuracion.activo %}Activo{% else %}Inactivo{% endif %}
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="mt-4">
+                <a href="{% url 'erp:configuracion_turno_update' configuracion.pk %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{% url 'erp:configuracion_turno_delete' configuracion.pk %}" class="btn btn-danger" onclick="return confirm('¿Estás seguro de eliminar esta configuración?')">
+                    <i class="fas fa-trash"></i> Eliminar
+                </a>
+                <a href="{% url 'erp:configuracion_turno_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Editar{% else %}Nueva{% endif %} Configuración de Turnos - ERP CORE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">{% if object %}Editar{% else %}Nueva{% endif %} Configuración de Turnos</h3>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.instalacion.id_for_label }}" class="form-label">Instalación</label>
+                            {{ form.instalacion }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="{{ form.tipo_turno.id_for_label }}" class="form-label">Tipo de Turno</label>
+                            {{ form.tipo_turno }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.hora_inicio.id_for_label }}" class="form-label">Hora de Inicio</label>
+                            {{ form.hora_inicio }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.hora_fin.id_for_label }}" class="form-label">Hora de Fin</label>
+                            {{ form.hora_fin }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.dias_trabajo.id_for_label }}" class="form-label">Días de Trabajo por Mes</label>
+                            {{ form.dias_trabajo }}
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.dias_libres.id_for_label }}" class="form-label">Días Libres por Mes</label>
+                            {{ form.dias_libres }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label for="{{ form.activo.id_for_label }}" class="form-label">Estado</label>
+                            {{ form.activo }}
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">{% if object %}Actualizar{% else %}Crear{% endif %}</button>
+                    <a href="{% url 'erp:configuracion_turno_list' %}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

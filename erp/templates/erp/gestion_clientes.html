@@ -1,0 +1,264 @@
+{% extends 'erp/base.html' %}
+
+{% block title %}Gestión de Clientes e Instalaciones{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tab-content {
+        padding: 20px 0;
+    }
+    .nav-tabs .nav-link {
+        font-weight: 500;
+    }
+    .tab-pane {
+        padding-top: 20px;
+    }
+    .card {
+        margin-bottom: 20px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    .table-actions {
+        white-space: nowrap;
+        width: 150px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Gestión de Clientes e Instalaciones</h1>
+        <div>
+            <a href="{% url 'erp:cliente_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Cliente
+            </a>
+        </div>
+    </div>
+
+    <!-- Pestañas -->
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="clientes-tab" data-bs-toggle="tab" 
+                    data-bs-target="#clientes" type="button" role="tab">
+                <i class="fas fa-building me-2"></i>Clientes
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="instalaciones-tab" data-bs-toggle="tab" 
+                    data-bs-target="#instalaciones" type="button" role="tab">
+                <i class="fas fa-store me-2"></i>Instalaciones
+            </button>
+        </li>
+    </ul>
+
+    <!-- Contenido de las pestañas -->
+    <div class="tab-content" id="myTabContent">
+        <!-- Pestaña de Clientes -->
+        <div class="tab-pane fade show active" id="clientes" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Listado de Clientes</span>
+                    <div>
+                        <input type="text" id="searchClientes" class="form-control form-control-sm" 
+                               placeholder="Buscar clientes...">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Razón Social</th>
+                                    <th>RUT</th>
+                                    <th>Contacto</th>
+                                    <th>Instalaciones</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for cliente in clientes %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ cliente.razon_social }}</strong>
+                                        {% if cliente.direccion %}
+                                            <br><small class="text-muted">{{ cliente.direccion|truncatechars:40 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ cliente.rut }}</td>
+                                    <td>
+                                        {% if cliente.gestor_nombre %}
+                                            {{ cliente.gestor_nombre }}<br>
+                                            <small class="text-muted">
+                                                {{ cliente.gestor_telefono|default:'' }}
+                                                {% if cliente.gestor_telefono and cliente.gestor_email %}| {% endif %}
+                                                {{ cliente.gestor_email|default:'' }}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">Sin contacto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-primary">{{ cliente.instalaciones.count }} instalaciones</span>
+                                    </td>
+                                    <td class="table-actions text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'erp:cliente_detail' cliente.pk %}" 
+                                               class="btn btn-outline-primary" 
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'erp:cliente_update' cliente.pk %}" 
+                                               class="btn btn-outline-secondary" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'erp:instalacion_create' %}?cliente={{ cliente.pk }}" 
+                                               class="btn btn-outline-success" 
+                                               title="Agregar instalación">
+                                                <i class="fas fa-plus"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        No hay clientes registrados. 
+                                        <a href="{% url 'erp:cliente_create' %}">Agregar cliente</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña de Instalaciones -->
+        <div class="tab-pane fade" id="instalaciones" role="tabpanel">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Listado de Instalaciones</span>
+                    <div>
+                        <input type="text" id="searchInstalaciones" class="form-control form-control-sm" 
+                               placeholder="Buscar instalaciones...">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Instalación</th>
+                                    <th>Cliente</th>
+                                    <th>Contacto</th>
+                                    <th>Estado</th>
+                                    <th class="text-end">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for instalacion in instalaciones %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ instalacion.nombre }}</strong>
+                                        {% if instalacion.direccion %}
+                                            <br><small class="text-muted">{{ instalacion.direccion|truncatechars:40 }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ instalacion.cliente.razon_social }}
+                                    </td>
+                                    <td>
+                                        {% if instalacion.contacto_nombre %}
+                                            {{ instalacion.contacto_nombre }}<br>
+                                            <small class="text-muted">
+                                                {{ instalacion.contacto_telefono|default:'' }}
+                                                {% if instalacion.contacto_telefono and instalacion.contacto_email %}| {% endif %}
+                                                {{ instalacion.contacto_email|default:'' }}
+                                            </small>
+                                        {% else %}
+                                            <span class="text-muted">Sin contacto</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if instalacion.activa %}
+                                            <span class="badge bg-success">Activa</span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">Inactiva</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="table-actions text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'erp:instalacion_detail' instalacion.pk %}" 
+                                               class="btn btn-outline-primary" 
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'erp:instalacion_update' instalacion.pk %}" 
+                                               class="btn btn-outline-secondary" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">
+                                        No hay instalaciones registradas. 
+                                        <a href="{% url 'erp:instalacion_create' %}">Agregar instalación</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Búsqueda en tiempo real para la tabla de clientes
+const searchClientes = document.getElementById('searchClientes');
+if (searchClientes) {
+    searchClientes.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#clientes tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+
+// Búsqueda en tiempo real para la tabla de instalaciones
+const searchInstalaciones = document.getElementById('searchInstalaciones');
+if (searchInstalaciones) {
+    searchInstalaciones.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase();
+        const rows = document.querySelectorAll('#instalaciones tbody tr');
+        
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            row.style.display = text.includes(searchTerm) ? '' : 'none';
+        });
+    });
+}
+
+// Inicializar tooltips
+var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl);
+});
+</script>
+{% endblock %}

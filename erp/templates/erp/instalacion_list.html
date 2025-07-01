@@ -1,0 +1,154 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Listado de Instalaciones{% endblock %}
+
+{% block page_title %}<i class="fas fa-building"></i> 
+    {% if cliente %}
+        Instalaciones de {{ cliente.razon_social }}
+    {% else %}
+        Listado de Instalaciones
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">
+                {% if cliente %}
+                    Instalaciones de {{ cliente.razon_social }}
+                {% else %}
+                    Todas las instalaciones
+                {% endif %}
+            </h5>
+            <a href="{% url 'erp:instalacion_create' %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-plus me-1"></i> Nueva Instalación
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if instalaciones %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Cliente</th>
+                            <th>Dirección</th>
+                            <th>Contacto</th>
+                            <th>Estado</th>
+                            <th class="text-end">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for instalacion in instalaciones %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'erp:instalacion_detail' instalacion.pk %}" class="text-decoration-none">
+                                    {{ instalacion.nombre }}
+                                </a>
+                            </td>
+                            <td>
+                                {% if instalacion.cliente %}
+                                    <a href="{% url 'erp:cliente_detail' instalacion.cliente.pk %}" class="text-decoration-none">
+                                        {{ instalacion.cliente.razon_social }}
+                                    </a>
+                                {% else %}
+                                    <span class="text-muted">Sin cliente asignado</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ instalacion.direccion|truncatechars:30 }}</td>
+                            <td>
+                                {% if instalacion.contacto_nombre %}
+                                    {{ instalacion.contacto_nombre }}
+                                    {% if instalacion.contacto_telefono %}
+                                        <br><small class="text-muted">{{ instalacion.contacto_telefono }}</small>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">Sin contacto</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if instalacion.activa %}
+                                    <span class="badge bg-success">Activa</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inactiva</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end">
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'erp:instalacion_detail' instalacion.pk %}" class="btn btn-sm btn-outline-primary" data-bs-toggle="tooltip" title="Ver detalle">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'erp:instalacion_update' instalacion.pk %}" class="btn btn-sm btn-outline-secondary" data-bs-toggle="tooltip" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'erp:instalacion_delete' instalacion.pk %}" class="btn btn-sm btn-outline-danger" data-bs-toggle="tooltip" title="Eliminar">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="alert alert-info mb-0">
+                <i class="fas fa-info-circle me-2"></i>
+                No hay instalaciones registradas. 
+                <a href="{% url 'erp:instalacion_create' %}" class="alert-link">Crear una nueva instalación</a>.
+            </div>
+        {% endif %}
+    </div>
+    {% if is_paginated %}
+        <div class="card-footer">
+            <nav aria-label="Paginación">
+                <ul class="pagination pagination-sm justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Anterior</span>
+                        </li>
+                    {% endif %}
+                    
+                    {% for i in paginator.page_range %}
+                        {% if page_obj.number == i %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ i }} <span class="visually-hidden">(actual)</span></span>
+                            </li>
+                        {% else %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+                            </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">Siguiente</span>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Inicializar tooltips
+$(function () {
+    $('[data-bs-toggle="tooltip"]').tooltip();
+});
+</script>
+{% endblock %}

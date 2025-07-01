@@ -1,0 +1,53 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Calendario de Turnos - ERP CORE{% endblock %}
+
+{% block extra_css %}
+<link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+{% endblock %}
+
+{% block extra_js %}
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/locales/es.js'></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'es',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        events: {{ calendar_data|safe }},
+        eventClick: function(info) {
+            window.location.href = '{% url "erp:turno_detail" 0 %}'.replace('0', info.event.id);
+        },
+        eventDidMount: function(info) {
+            var tooltip = new bootstrap.Tooltip(info.el, {
+                title: info.event.extendedProps.instalacion,
+                placement: 'top'
+            });
+        }
+    });
+    calendar.render();
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Calendario de Turnos</h3>
+            </div>
+            <div class="card-body">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,102 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - ERP CORE{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Tarjetas de estadísticas -->
+    <div class="col-md-3 mb-4">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <h5 class="card-title">Personal Activo</h5>
+                <h2 class="card-text">{{ dashboard_data.personal_activo }}</h2>
+                <a href="{% url 'erp:personal_list' %}" class="btn btn-light">Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <h5 class="card-title">Vehículos en Servicio</h5>
+                <h2 class="card-text">{{ dashboard_data.vehiculos_en_servicio }}</h2>
+                <a href="{% url 'erp:vehiculo_list' %}" class="btn btn-light">Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <h5 class="card-title">Incidencias Abiertas</h5>
+                <h2 class="card-text">{{ dashboard_data.incidencias_abiertas }}</h2>
+                <a href="{% url 'erp:incidencia_list' %}" class="btn btn-dark">Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-3 mb-4">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <h5 class="card-title">Personal en Turno</h5>
+                <h2 class="card-text">{{ dashboard_data.personal_en_turno }}</h2>
+                <a href="{% url 'erp:turno_list' %}" class="btn btn-light">Ver Detalle</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Accesos Directos -->
+<div class="row">
+    <div class="col-12 mb-4">
+        <h3>Accesos Directos</h3>
+        <div class="btn-group btn-group-lg w-100" role="group">
+            <a href="{% url 'erp:incidencia_create' %}" class="btn btn-danger">
+                <i class="fas fa-exclamation-triangle"></i> Crear Incidencia
+            </a>
+            <a href="{% url 'erp:turno_create' %}" class="btn btn-primary">
+                <i class="fas fa-calendar-plus"></i> Asignar Turno
+            </a>
+            <a href="{% url 'erp:personal_create' %}" class="btn btn-success">
+                <i class="fas fa-user-plus"></i> Añadir Personal
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Últimas Incidencias -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Últimas Incidencias</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Título</th>
+                            <th>Instalación</th>
+                            <th>Tipo</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for incidencia in incidencias_recentes %}
+                        <tr>
+                            <td>{{ incidencia.fecha_hora_reporte|date:"d/m/Y H:i" }}</td>
+                            <td>{{ incidencia.titulo }}</td>
+                            <td>{{ incidencia.instalacion.nombre }}</td>
+                            <td>{{ incidencia.tipo_incidencia.nombre }}</td>
+                            <td><span class="badge bg-{{ incidencia.get_estado_display|lower }}">{{ incidencia.get_estado_display }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

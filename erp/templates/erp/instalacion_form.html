@@ -1,0 +1,272 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}{% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Instalación{% endblock %}
+
+{% block page_title %}<i class="fas fa-building"></i> {% if form.instance.pk %}Editar{% else %}Nueva{% endif %} Instalación{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <form method="post" class="needs-validation" novalidate>
+            {% csrf_token %}
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="{{ form.nombre.id_for_label }}" class="form-label">
+                            {{ form.nombre.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.nombre }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese el nombre de la instalación.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.cliente.id_for_label }}" class="form-label">
+                            {{ form.cliente.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.cliente }}
+                        <div class="invalid-feedback">
+                            Por favor seleccione un cliente.
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="{{ form.gestor.id_for_label }}" class="form-label">
+                            {{ form.gestor.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.gestor }}
+                        <div class="invalid-feedback">
+                            Por favor seleccione un gestor.
+                        </div>
+                        <small class="form-text text-muted">
+                            <a href="#" id="add-gestor" data-bs-toggle="modal" data-bs-target="#gestorModal">
+                                <i class="fas fa-plus-circle"></i> Agregar nuevo gestor
+                            </a>
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="{{ form.direccion.id_for_label }}" class="form-label">
+                            {{ form.direccion.label }}
+                            <span class="text-danger">*</span>
+                        </label>
+                        {{ form.direccion }}
+                        <div class="invalid-feedback">
+                            Por favor ingrese la dirección de la instalación.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.contacto_nombre.id_for_label }}" class="form-label">
+                            {{ form.contacto_nombre.label }}
+                        </label>
+                        {{ form.contacto_nombre }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.contacto_telefono.id_for_label }}" class="form-label">
+                            {{ form.contacto_telefono.label }}
+                        </label>
+                        {{ form.contacto_telefono }}
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label for="{{ form.contacto_email.id_for_label }}" class="form-label">
+                            {{ form.contacto_email.label }}
+                        </label>
+                        {{ form.contacto_email }}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-check">
+                        {{ form.activa }}
+                        <label class="form-check-label" for="{{ form.activa.id_for_label }}">
+                            {{ form.activa.label }}
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between mt-4">
+                <a href="{% url 'erp:instalacion_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i> Volver al listado
+                </a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para agregar nuevo gestor -->
+<div class="modal fade" id="gestorModal" tabindex="-1" aria-labelledby="gestorModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="gestorModalLabel">Agregar Nuevo Gestor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="gestorForm" method="post" action="{% url 'erp:gestor_create_ajax' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="cliente_id" id="cliente_id" value="{{ cliente_id|default:'' }}">
+                    <div class="mb-3">
+                        <label for="nombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="nombre" name="nombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cargo" class="form-label">Cargo</label>
+                        <input type="text" class="form-control" id="cargo" name="cargo">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="telefono" class="form-label">Teléfono</label>
+                        <input type="text" class="form-control" id="telefono" name="telefono">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="es_principal" name="es_principal" value="true">
+                        <label class="form-check-label" for="es_principal">Marcar como gestor principal</label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="saveGestor">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+(function () {
+    'use strict'
+    
+    // Obtener todos los formularios a los que queremos aplicar estilos de validación de Bootstrap
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Bucle sobre ellos y evitar el envío
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (form.checkValidity() === false) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+})()
+
+// Manejar el cambio de cliente para actualizar los gestores
+$('#id_cliente').change(function() {
+    var clienteId = $(this).val();
+    if (clienteId) {
+        // Actualizar el campo oculto para el modal
+        $('#cliente_id').val(clienteId);
+        
+        // Cargar los gestores del cliente seleccionado
+        $.ajax({
+            url: '{% url "erp:get_gestores_cliente" %}',
+            data: {
+                'cliente_id': clienteId
+            },
+            dataType: 'json',
+            success: function(data) {
+                var $gestorSelect = $('#id_gestor');
+                $gestorSelect.empty();
+                
+                if (data.gestores.length > 0) {
+                    $.each(data.gestores, function(key, gestor) {
+                        $gestorSelect.append(
+                            $('<option></option>').attr('value', gestor.id).text(gestor.nombre + (gestor.cargo ? ' (' + gestor.cargo + ')' : ''))
+                        );
+                    });
+                } else {
+                    $gestorSelect.append(
+                        $('<option value="">---------</option>')
+                    );
+                }
+            }
+        });
+    } else {
+        $('#id_gestor').empty().append('<option value="">---------</option>');
+    }
+});
+
+// Manejar el envío del formulario de gestor
+$('#saveGestor').click(function() {
+    var form = $('#gestorForm');
+    $.ajax({
+        type: 'POST',
+        url: form.attr('action'),
+        data: form.serialize(),
+        dataType: 'json',
+        success: function(data) {
+            if (data.success) {
+                // Agregar el nuevo gestor al select
+                var $gestorSelect = $('#id_gestor');
+                $gestorSelect.empty();
+                
+                // Agregar los gestores actualizados
+                $.each(data.gestores, function(key, gestor) {
+                    $gestorSelect.append(
+                        $('<option></option>')
+                            .attr('value', gestor.id)
+                            .text(gestor.nombre + (gestor.cargo ? ' (' + gestor.cargo + ')' : ''))
+                            .prop('selected', gestor.id === data.gestor_id)
+                    );
+                });
+                
+                // Cerrar el modal y limpiar el formulario
+                $('#gestorModal').modal('hide');
+                form.trigger('reset');
+            } else {
+                alert('Error al guardar el gestor: ' + data.error);
+            }
+        },
+        error: function() {
+            alert('Error al conectar con el servidor');
+        }
+    });
+});
+
+// Si hay un cliente_id en el contexto, disparar el cambio para cargar los gestores
+$(document).ready(function() {
+    var clienteId = "{{ cliente_id|default:'' }}";
+    if (clienteId) {
+        $('#id_cliente').val(clienteId).trigger('change');
+    }
+});
+</script>
+{% endblock %}

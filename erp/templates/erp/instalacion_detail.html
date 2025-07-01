@@ -1,0 +1,182 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Detalle de Instalación - {{ instalacion.nombre }}{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-building"></i> {{ instalacion.nombre }}
+    <small class="text-muted">{{ instalacion.cliente.razon_social }}</small>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="btn-group" role="group">
+                <a href="{% url 'erp:instalacion_update' instalacion.pk %}" class="btn btn-primary">
+                    <i class="fas fa-edit"></i> Editar
+                </a>
+                <a href="{% url 'erp:instalacion_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">Información de la Instalación</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Nombre:</strong> {{ instalacion.nombre }}</p>
+                    <p><strong>Cliente:</strong> {{ instalacion.cliente.razon_social }}</p>
+                    <p><strong>Gestor Asignado:</strong> 
+                        {% if instalacion.gestor %}
+                            {{ instalacion.gestor.nombre }}
+                            {% if instalacion.gestor.cargo %} ({{ instalacion.gestor.cargo }}){% endif %}
+                            {% if instalacion.gestor.es_principal %}
+                                <span class="badge bg-info ms-2">Principal</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">No asignado</span>
+                        {% endif %}
+                    </p>
+                    <p><strong>Dirección:</strong> {{ instalacion.direccion }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Contacto Local:</strong> {{ instalacion.contacto_nombre|default:"No especificado" }}</p>
+                    <p><strong>Teléfono:</strong> {{ instalacion.contacto_telefono|default:"No especificado" }}</p>
+                    <p><strong>Email:</strong> {{ instalacion.contacto_email|default:"No especificado" }}</p>
+                    <p><strong>Estado:</strong> 
+                        {% if instalacion.activa %}
+                            <span class="badge bg-success">Activa</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactiva</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            
+            {% if instalacion.gestor %}
+            <div class="row mt-4">
+                <div class="col-12">
+                    <h6>Información del Gestor</h6>
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Nombre:</strong> {{ instalacion.gestor.nombre }}</p>
+                                    <p class="mb-1"><strong>Cargo:</strong> {{ instalacion.gestor.cargo|default:"No especificado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    <p class="mb-1"><strong>Email:</strong> {{ instalacion.gestor.email|default:"No especificado" }}</p>
+                                    <p class="mb-1"><strong>Teléfono:</strong> {{ instalacion.gestor.telefono|default:"No especificado" }}</p>
+                                </div>
+                                <div class="col-md-4">
+                                    {% if instalacion.gestor.instalaciones.count > 1 %}
+                                        <p class="mb-1">
+                                            <strong>Otras instalaciones:</strong> {{ instalacion.gestor.instalaciones.count|add:"-1" }}
+                                        </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sección de Requerimientos -->
+    {% if instalacion.requerimientos %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Requerimientos de la Instalación</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Sistema de Turnos:</strong> 
+                        {% if instalacion.requerimientos.sistema_turnos_4x4 %}
+                            4x4 (4 días trabajo / 4 días libres)
+                        {% else %}
+                            Personalizado
+                        {% endif %}
+                    </p>
+                    <p><strong>Requiere Personal:</strong> 
+                        {% if instalacion.requerimientos.requiere_personal %}
+                            <i class="fas fa-check text-success"></i> Sí
+                        {% else %}
+                            <i class="fas fa-times text-danger"></i> No
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Requiere Vehículos:</strong> 
+                        {% if instalacion.requerimientos.requiere_vehiculos %}
+                            <i class="fas fa-check text-success"></i> Sí ({{ instalacion.requerimientos.cantidad_vehiculos }})
+                        {% else %}
+                            <i class="fas fa-times text-danger"></i> No
+                        {% endif %}
+                    </p>
+                    {% if instalacion.requerimientos.notas %}
+                        <p><strong>Notas:</strong> {{ instalacion.requerimientos.notas }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Sección de Configuración de Turnos -->
+    {% if instalacion.requerimientos.configuracion_turnos %}
+    <div class="card mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Configuración de Turnos</h5>
+        </div>
+        <div class="card-body">
+            {% with config=instalacion.requerimientos.configuracion_turnos %}
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Tipo de Turno:</strong> {{ config.get_tipo_turno_display }}</p>
+                    <p><strong>Días de Trabajo:</strong> {{ config.dias_trabajo }} días</p>
+                    <p><strong>Días de Descanso:</strong> {{ config.dias_descanso }} días</p>
+                    <p><strong>Personal por Turno:</strong> {{ config.personal_requerido_por_turno }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Turno Mañana:</strong> {{ config.turno_mañana_inicio|time:"H:i" }} - {{ config.turno_mañana_fin|time:"H:i" }}</p>
+                    <p><strong>Turno Tarde:</strong> {{ config.turno_tarde_inicio|time:"H:i" }} - {{ config.turno_tarde_fin|time:"H:i" }}</p>
+                    <p><strong>Incluir Festivos:</strong> 
+                        {% if config.incluir_festivos %}
+                            <i class="fas fa-check text-success"></i> Sí
+                        {% else %}
+                            <i class="fas fa-times text-danger"></i> No
+                        {% endif %}
+                    </p>
+                    {% if config.notas %}
+                        <p><strong>Notas:</strong> {{ config.notas }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endwith %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Aquí puedes agregar cualquier script JavaScript necesario
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicialización de tooltips de Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Eliminar Configuración de Turnos - ERP CORE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Eliminar Configuración de Turnos</h3>
+        </div>
+        <div class="card-body">
+            <p>¿Estás seguro de eliminar la configuración de turnos para {{ object.instalacion.nombre }}?</p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Eliminar
+                    </button>
+                    <a href="{% url 'erp:configuracion_turno_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

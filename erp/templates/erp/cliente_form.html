@@ -1,0 +1,154 @@
+{% extends 'erp/base.html' %}
+
+{% block title %}{% if object %}Editar Cliente{% else %}Nuevo Cliente{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">
+                {% if object %}
+                    <i class="fas fa-edit"></i> Editar Cliente: {{ object.razon_social }}
+                {% else %}
+                    <i class="fas fa-plus-circle"></i> Nuevo Cliente
+                {% endif %}
+            </h2>
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="border-bottom pb-2 mb-3">Información Básica</h5>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_razon_social" class="form-label">{{ form.razon_social.label }} <span class="text-danger">*</span></label>
+                        {{ form.razon_social }}
+                        {% if form.razon_social.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.razon_social.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_rut" class="form-label">{{ form.rut.label }} <span class="text-danger">*</span></label>
+                        {{ form.rut }}
+                        <div class="form-text">Formato: 12345678-9</div>
+                        {% if form.rut.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.rut.errors.0 }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-12 mb-3">
+                        <label for="id_direccion" class="form-label">{{ form.direccion.label }}</label>
+                        {{ form.direccion }}
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="border-bottom pb-2 mb-3">Información del Gestor</h5>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="id_gestor_nombre" class="form-label">{{ form.gestor_nombre.label }}</label>
+                        {{ form.gestor_nombre }}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="id_gestor_telefono" class="form-label">{{ form.gestor_telefono.label }}</label>
+                        {{ form.gestor_telefono }}
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <label for="id_gestor_email" class="form-label">{{ form.gestor_email.label }}</label>
+                        {{ form.gestor_email }}
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <h5 class="border-bottom pb-2 mb-3">Información de Contacto</h5>
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_email_contacto" class="form-label">{{ form.email_contacto.label }}</label>
+                        {{ form.email_contacto }}
+                    </div>
+                    
+                    <div class="col-md-6 mb-3">
+                        <label for="id_telefono_contacto" class="form-label">{{ form.telefono_contacto.label }}</label>
+                        {{ form.telefono_contacto }}
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <a href="{% url 'erp:cliente_list' %}" class="btn btn-secondary me-md-2">
+                        <i class="fas fa-times"></i> Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> {% if object %}Actualizar{% else %}Guardar{% endif %} Cliente
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Validación del formulario
+(function () {
+    'use strict'
+    
+    // Obtener todos los formularios a los que queremos aplicar estilos de validación de Bootstrap
+    var forms = document.querySelectorAll('.needs-validation')
+    
+    // Bucle sobre ellos y evitar el envío
+    Array.prototype.slice.call(forms)
+        .forEach(function (form) {
+            form.addEventListener('submit', function (event) {
+                if (!form.checkValidity()) {
+                    event.preventDefault()
+                    event.stopPropagation()
+                }
+                
+                form.classList.add('was-validated')
+            }, false)
+        })
+})()
+
+// Formatear RUT mientras se escribe
+document.addEventListener('DOMContentLoaded', function() {
+    const rutInput = document.getElementById('id_rut');
+    
+    if (rutInput) {
+        rutInput.addEventListener('input', function(e) {
+            let rut = this.value.replace(/\./g, '').replace(/\-/g, '').trim().toUpperCase();
+            let rutTmp = rut.slice(0, -1);
+            
+            if (rutTmp.length > 0) {
+                rutTmp = rutTmp.replace(/^0+/, '');
+                rutTmp = rutTmp.replace(/[^0-9kK]/g, '');
+                
+                if (rutTmp.length > 1) {
+                    rutTmp = rutTmp.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+                
+                if (rut.length > 1) {
+                    rutTmp += '-' + rut.slice(-1);
+                }
+                
+                this.value = rutTmp;
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

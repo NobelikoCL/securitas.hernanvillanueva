@@ -1,0 +1,71 @@
+{% extends 'erp/base.html' %}
+{% load static %}
+
+{% block title %}Carga Masiva de Personal - ERP CORE{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="mb-0">Carga Masiva de Personal</h3>
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="alert alert-info" role="alert">
+                            <h4 class="alert-heading">Formato del archivo CSV</h4>
+                            <p>El archivo CSV debe contener los siguientes campos (en este orden):</p>
+                            <ul>
+                                <li>nombres</li>
+                                <li>apellidos</li>
+                                <li>rut</li>
+                                <li>fecha_nacimiento (DD-MM-YYYY)</li>
+                                <li>direccion</li>
+                                <li>telefono</li>
+                                <li>email</li>
+                                <li>cargo</li>
+                                <li>fecha_contratacion (DD-MM-YYYY)</li>
+                                <li>cliente</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="csv_file" class="form-label">Archivo CSV</label>
+                            <input type="file" class="form-control" id="csv_file" name="csv_file" accept=".csv" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="mb-3">
+                            <label class="form-label">Clientes Disponibles</label>
+                            <select class="form-select" disabled>
+                                <option value="">Seleccione un cliente...</option>
+                                {% for cliente in clientes %}
+                                <option value="{{ cliente.rut }}">{{ cliente.razon_social }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Los clientes se deben seleccionar en el archivo CSV</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload"></i> Cargar Personal
+                        </button>
+                        <a href="{% url 'erp:personal_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
